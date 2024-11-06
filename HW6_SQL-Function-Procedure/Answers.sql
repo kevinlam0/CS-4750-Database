@@ -63,6 +63,10 @@ BEGIN
     FROM Product P
     JOIN Warehouse_stock WS ON WS.product_id = P.product_id
     WHERE P.product_id = @product_id;
+
+    IF @TotalStock IS NULL
+        SET @TotalStock = 0;
+
     RETURN @TotalStock;
 END;
 GO
@@ -78,6 +82,12 @@ CREATE PROCEDURE AddNewEmployee
     @department_id INT
 AS
 BEGIN
+    IF EXISTS (SELECT 1 FROM Employee WHERE employee_id = @employee_id)
+    BEGIN
+        RAISERROR('Employee ID already exists', 16, 1);
+        RETURN;
+    END;
+    
     INSERT INTO Employee (employee_id, first_name, last_name, base_salary, bonus, allowance, department_id)
     VALUES (@employee_id, @first_name, @last_name, @base_salary, @bonus, @allowance, @department_id);
 END;
@@ -110,23 +120,35 @@ BEGIN
 END;
 GO
 
--- Question 9 (Do error handling)
+-- Question 9
 CREATE PROCEDURE ResetCustomerPassword
     @customer_id INT,
     @new_password VARCHAR(100)
 AS
 BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Customer WHERE customer_id = @customer_id)
+    BEGIN
+        RAISERROR('Customer ID does not exist', 16, 1);
+        RETURN;
+    END;
+
     UPDATE Customer
     SET password = @new_password
     WHERE customer_id = @customer_id;
 END;
 GO
 
--- Question 10 (Do error handling)
+-- Question 10
 CREATE PROCEDURE DeleteEmployee
     @employee_id INT
 AS
 BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Employee WHERE employee_id = @employee_id)
+    BEGIN
+        RAISERROR('Employee ID does not exist', 16, 1);
+        RETURN;
+    END;
+
     DELETE FROM Employee
     WHERE employee_id = @employee_id;
 END;
